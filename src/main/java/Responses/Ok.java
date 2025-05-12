@@ -2,6 +2,10 @@ package Responses;
 
 public class Ok extends Response{
     public Ok() {
-        super("HTTP/1.1", 200, "OK");
+        super(200, "OK");
+    }
+
+    public Ok(String message) {
+        super(200, message);
     }
 }
