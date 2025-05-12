@@ -10,6 +10,6 @@ public class Response {
     }
 
     public String toString() {
-        return String.format("%s %d %s\r\n", protocol, statusCode, statusMessage);
+        return String.format("%s %d %s\r\n\r\n", protocol, statusCode, statusMessage);
     }
 }
