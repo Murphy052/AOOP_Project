@@ -5,13 +5,17 @@ import Responses.Response;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class Server {
     private final ServerSocket serverSocket;
+    private final ArrayList<Endpoint> endpoints;
 
     private Server(Builder builder) {
         this.serverSocket = builder.serverSocket;
+        this.endpoints = builder.endpoints;
     }
 
     public static Builder builder() {
@@ -22,9 +26,16 @@ public class Server {
         private int threads = 4;
         private ServerSocket serverSocket;
         private ThreadPoolExecutor executor;
+        private ArrayList<Endpoint> endpoints;
 
         public Builder port(int port) throws IOException {
             serverSocket = new ServerSocket(port);
+
+            return this;
+        }
+
+        public Builder endpoints(ArrayList<Endpoint> endpoints) {
+            this.endpoints = endpoints;
 
             return this;
         }
@@ -55,30 +66,46 @@ public class Server {
 
     private void acceptRequest() throws IOException {
         Socket client = this.serverSocket.accept();
-        System.out.printf("Accepted new connection from: %s%n", client.getInetAddress().getHostAddress());
+        Request request = new Request(client.getInputStream());
 
-        Request request = this.getRequest(client.getInputStream());
+        System.out.printf("[INFO] %s: %s%n", client.getInetAddress().getHostAddress(), request.getRequestLine());
+
+        System.out.println("Headers: " + request.headers);
         this.handleRequest(request, client.getOutputStream());
-    }
 
-    private Request getRequest(InputStream requestInputStream) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(requestInputStream));
-        String requestLine = in.readLine();
-
-        return new Request(requestLine);
+        client.close();
     }
 
     private void handleRequest(Request request, OutputStream responseOutputStream) throws IOException {
         Response resp;
-        if (request.getTarget().compareToIgnoreCase("/") == 0) {
-            resp = new Ok();
-        } else {
-            resp = new NotFound();
-        }
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        HashMap<String, String> headers = new HashMap<>();
+        String body = null;
+
+        switch (request.target) {
+            case "/":
+                resp = new Ok();
+                break;
+            case "/body":
+                body = "Hello";
+
+                headers.put("Content-Type", "plain/text");
+                headers.put("Content-Length", String.valueOf(body.length()));
+
+                resp = new Response(200, "OK", headers, body);
+
+                break;
+            case "/user-agent":
+                body = request.headers.get("User-Agent");
+
+                headers.put("Content-Type", "plain/text");
+                headers.put("Content-Length", String.valueOf(body.length()));
+
+                resp = new Response(200, "OK", headers, body);
+
+                break;
+            default:
+                resp = new NotFound();
+                break;
         }
 
         // Send Response
