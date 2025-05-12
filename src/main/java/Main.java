@@ -1,3 +1,7 @@
+import Responses.NotFound;
+import Responses.Ok;
+import Responses.Response;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,9 +26,16 @@ public class Main {
        BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
        PrintWriter out = new PrintWriter(client.getOutputStream(), true);
 
-       System.out.println(in.readLine());
+       String requestLine = in.readLine();
 
-       Response resp = new Response();
+       Request request = new Request(requestLine);
+       Response resp;
+       if (request.getTarget().compareToIgnoreCase("/") == 0) {
+         resp = new Ok();
+       } else {
+         resp = new NotFound();
+       }
+
        out.println(resp);
 
      } catch (IOException e) {
