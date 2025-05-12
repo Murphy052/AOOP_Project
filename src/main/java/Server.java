@@ -7,14 +7,18 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class Server {
     private final ServerSocket serverSocket;
+    private final ExecutorService threadPool;
     private final ArrayList<Endpoint> endpoints;
 
     private Server(Builder builder) {
         this.serverSocket = builder.serverSocket;
+        this.threadPool = builder.threadPool;
         this.endpoints = builder.endpoints;
     }
 
@@ -23,9 +27,8 @@ public class Server {
     }
 
     public static class Builder {
-        private int threads = 4;
         private ServerSocket serverSocket;
-        private ThreadPoolExecutor executor;
+        private ExecutorService threadPool;
         private ArrayList<Endpoint> endpoints;
 
         public Builder port(int port) throws IOException {
@@ -44,7 +47,7 @@ public class Server {
             if (threads < 1) {
                 throw new IllegalArgumentException("threads must be greater than 0");
             }
-
+            threadPool = Executors.newFixedThreadPool(threads);
             return this;
         }
 
@@ -70,10 +73,27 @@ public class Server {
 
         System.out.printf("[INFO] %s: %s%n", client.getInetAddress().getHostAddress(), request.getRequestLine());
 
-        System.out.println("Headers: " + request.headers);
-        this.handleRequest(request, client.getOutputStream());
+        this.threadPool.submit(new ServerService(client, request));
+    }
+}
 
-        client.close();
+
+class ServerService implements Runnable {
+    private final Socket client;
+    private final Request request;
+
+    public ServerService(Socket client, Request request) {
+        this.client = client;
+        this.request = request;
+    }
+
+    public void run() {
+        try {
+            this.handleRequest(request, client.getOutputStream());
+            client.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void handleRequest(Request request, OutputStream responseOutputStream) throws IOException {
