@@ -25,7 +25,7 @@ public class Main {
        System.out.println(in.readLine());
 
        Response resp = new Response();
-       out.print(resp);
+       out.println(resp);
 
      } catch (IOException e) {
        System.out.println("IOException: " + e.getMessage());
