@@ -123,6 +123,18 @@ class ServerService implements Runnable {
                 resp = new Response(200, "OK", headers, body);
 
                 break;
+            case "/post":
+                body = request.body;
+
+                if (body == null) {
+                    resp = new Response(400, "Bad Request");
+                } else {
+                    headers.put("Content-Type", "plain/text");
+                    headers.put("Content-Length", String.valueOf(body.length()));
+
+                    resp = new Response(200, "OK", headers, body);
+                }
+                break;
             default:
                 resp = new NotFound();
                 break;

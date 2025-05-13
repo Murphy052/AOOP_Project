@@ -9,6 +9,8 @@ public class Request {
     public final String target;
     public final String version;
     public final HashMap<String, String> headers;
+    public final HashMap<String, String> parameters;
+    public final String body;
 
     public Request(BufferedReader in) throws IOException {
         String startLine = in.readLine();
@@ -28,6 +30,28 @@ public class Request {
         }
 
         this.headers = headers;
+        this.parameters = parseQueryParams(target);
+
+        // Get Body of POST
+        if (method.compareTo("POST") == 0) {
+            int contentLength = 0;
+
+            if (this.headers.containsKey("Content-Length")) {
+                contentLength = Integer.parseInt(this.headers.get("Content-Length"));
+            }
+
+            char[] buffer = new char[contentLength];
+            int read = 0;
+            while (read < contentLength) {
+                int r = in.read(buffer, read, contentLength - read);
+                if (r == -1) break;
+                read += r;
+            }
+
+            this.body = new String(buffer, 0, read);
+        } else {
+            this.body = null;
+        }
     }
 
     public Request(InputStream in) throws IOException {
@@ -36,5 +60,16 @@ public class Request {
 
     public String getRequestLine() {
         return String.format("%s %s %s", method, target, version);
+    }
+
+    private static HashMap<String, String> parseQueryParams(String target) {
+        HashMap<String, String> params = new HashMap<>();
+        if (target.contains("?")) {
+            String paramsString = target.split("\\?")[1];
+            for (String param : paramsString.split("&")) {
+                params.put(param.split("=")[0], param.split("=")[1]);
+            }
+        }
+        return params;
     }
 }
