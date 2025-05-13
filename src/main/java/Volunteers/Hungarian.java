@@ -1,6 +1,8 @@
+package Volunteers;
+
 import java.util.*;
 
-// Hungarian (Munkres) Algorithm implementation
+// Volunteers.Hungarian (Munkres) Algorithm implementation
 public class Hungarian {
     private final int n;
     private final int[][] cost;
@@ -72,7 +74,7 @@ public class Hungarian {
     }
 
     /**
-     * Matches volunteers to services minimizing preference cost using Hungarian Algorithm.
+     * Matches volunteers to services minimizing preference cost using Volunteers.Hungarian Algorithm.
      *
      * @param prefs    volunteer preference map (volunteerId → list of preferred serviceIds in order)
      * @param services list of available serviceIds
@@ -107,7 +109,7 @@ public class Hungarian {
             }
         }
 
-        // Run Hungarian Algorithm
+        // Run Volunteers.Hungarian Algorithm
         Hungarian hung = new Hungarian(cost);
         int[] rowToCol = hung.execute();
 

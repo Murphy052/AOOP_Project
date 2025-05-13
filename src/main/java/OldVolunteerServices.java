@@ -1,8 +1,8 @@
-class VolunteerServices {
+class OldVolunteerServices {
     private final String id;
     private final String name;
 
-    public VolunteerServices(String id, String name) {
+    public OldVolunteerServices(String id, String name) {
         this.id = id;
         this.name = name;
     }
