@@ -4,20 +4,26 @@ import Server.Server;
 import Server.types.Endpoints;
 import Server.types.MethodRoutePair;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 
 public class Main {
     public static void main(String[] args) {
+        HashMap<String, String> services = new HashMap<>();
+        HashMap<String, String> preferences = new HashMap<>();
+        HashMap<String, String> assignments = new HashMap<>();
+
+        services.put("S1", "Food Distribution");
+        services.put("S2", "Medical Aid");
+        services.put("S3", "Shelter Setup");
+
         Endpoints endpoints = new Endpoints();
 
         endpoints.put(new MethodRoutePair("GET", "/"), (request) -> new Ok());
 
         endpoints.put(new MethodRoutePair("GET", "/body"), (request) -> {
             String body = "Hello";
-            return new Response(200, "OK", body);
-        });
-
-        endpoints.put(new MethodRoutePair("GET", "/user-agent"), (request) -> {
-            String body = request.headers.get("User-Agent");
             return new Response(200, "OK", body);
         });
 
