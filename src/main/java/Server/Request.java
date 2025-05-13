@@ -1,5 +1,8 @@
 package Server;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +22,7 @@ public class Request {
         if (startLine == null) throw new IOException("Start line is empty");
         String[] tokens = startLine.split(" ");
         method = tokens[0];
-        target = tokens[1];
+        target = (tokens[1].contains("?")) ? tokens[1].split("\\?")[0] : tokens[1];
         version = tokens[2];
 
         // Parse Headers
@@ -32,7 +35,7 @@ public class Request {
         }
 
         this.headers = headers;
-        this.parameters = parseQueryParams(target);
+        this.parameters = parseQueryParams(tokens[1]);
 
         // Get Body of POST
         if (method.compareTo("POST") == 0) {
@@ -73,5 +76,11 @@ public class Request {
             }
         }
         return params;
+    }
+
+    public JSONObject getBodyAsJSONObject() throws JSONException {
+        if (this.body == null || this.headers.get("Content-Type").compareTo("application/json") != 0) return null;
+
+        return new JSONObject(this.body);
     }
 }
