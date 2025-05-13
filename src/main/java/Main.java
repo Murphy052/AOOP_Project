@@ -13,13 +13,28 @@ import org.json.JSONObject;
 
 
 public class Main {
-    public static void main(String[] args) {
-        HashMap<String, ArrayList<String>> _preferences = new HashMap<>();
-        HashMap<String, String> _assignments = new HashMap<>();
+    private static final Services _services = new Services();
+    private static final Endpoints _endpoints = initEndpoints();
+    private static HashMap<String, ArrayList<String>> _preferences = new HashMap<>();
+    private static HashMap<String, String> _assignments = new HashMap<>();
 
-        Services _services = new Services();
+    public static void main(String[] args) {
+        try {
+            Server server = Server.builder()
+                    .port(4221)
+                    .threads(4)
+                    .addEndpoints(_endpoints).build();
+
+            server.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Endpoints initEndpoints() {
         Endpoints _endpoints = new Endpoints();
 
+        // GET /
         _endpoints.put(new MethodRoutePair("GET", "/"), (request) -> new Ok());
 
         _endpoints.put(new MethodRoutePair("GET", "/services"), (request) -> {
@@ -37,6 +52,7 @@ public class Main {
             return new Response(200, "OK", data);
         });
 
+        // POST /preferences
         _endpoints.put(new MethodRoutePair("POST", "/preferences"), (request) -> {
             try {
                 JSONObject data = request.getBodyAsJSONObject();
@@ -55,6 +71,7 @@ public class Main {
             return new Ok();
         });
 
+        // GET /assignments?volunteerId={?}
         _endpoints.put(new MethodRoutePair("GET", "/assignments"), (request) -> {
             String volunteerId = request.parameters.get("volunteerId");
 
@@ -73,19 +90,6 @@ public class Main {
             return new Response(200, "OK", data);
         });
 
-        try {
-            Server server = Server.builder()
-                    .port(4221)
-                    .threads(4)
-                    .addEndpoints(_endpoints).build();
-
-            server.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static Response root() {
-        return new Ok();
+        return _endpoints;
     }
 }
