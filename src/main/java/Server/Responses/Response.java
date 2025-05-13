@@ -1,4 +1,4 @@
-package Responses;
+package Server.Responses;
 
 
 import java.util.HashMap;
@@ -7,25 +7,34 @@ public class Response {
     private final String protocol;
     private final int statusCode;
     private final String statusMessage;
-    private final HashMap<String, String> headers;
+    private HashMap<String, String> headers;
     private final String body;
 
     private static final String CRFL = "\r\n";
 
-    public Response(String protocol, int statusCode, String statusMessage, HashMap<String, String> headers, String body) {
+    public Response(String protocol, int statusCode, String statusMessage, HashMap<String, String> headers, Object body) {
         this.protocol = protocol;
         this.statusCode = statusCode;
         this.statusMessage = statusMessage;
         this.headers = headers;
-        this.body = body;
+
+        this.body = (body == null) ? "" : body.toString();
     }
 
     public Response(int statusCode, String statusMessage) {
         this("HTTP/1.1", statusCode, statusMessage, null, null);
     }
 
-    public Response(int statusCode, String statusMessage, HashMap<String, String> headers, String body) {
+    public Response(int statusCode, String statusMessage, HashMap<String, String> headers, Object body) {
         this("HTTP/1.1", statusCode, statusMessage, headers, body);
+    }
+
+    public Response(int statusCode, String statusMessage, Object body) {
+        this("HTTP/1.1", statusCode, statusMessage, null, body);
+    }
+
+    public void addHeaders(HashMap<String, String> headers) {
+        if (this.headers == null) this.headers = headers;
     }
 
     public String toString() {
@@ -39,11 +48,12 @@ public class Response {
         }
 
         rep.append(CRFL);
-
-        if (body != null) {
-            rep.append(body);
-        }
+        rep.append(body);
 
         return rep.toString();
+    }
+
+    public String getBody() {
+        return this.body;
     }
 }

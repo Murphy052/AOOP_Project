@@ -1,4 +1,4 @@
-package Responses;
+package Server.Responses;
 
 public class Ok extends Response{
     public Ok() {
