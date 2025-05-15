@@ -9,6 +9,7 @@ import Server.types.View;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,23 +73,36 @@ public class Server {
 
     private void acceptRequest() throws IOException {
         Socket client = this.serverSocket.accept();
-        Request request = new Request(client.getInputStream());
-
-        System.out.printf("[INFO] %s: %s%n", client.getInetAddress().getHostAddress(), request.getRequestLine());
 
         this.threadPool.submit(() -> {
             try {
-                View view = endpoints.get(new MethodRoutePair(request.method, request.target));
-                this.handleEndpoint(request, client.getOutputStream(), view);
-                client.close();
+                this.handleRequest(client);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    private void handleEndpoint(Request request, OutputStream responseOutputStream, View view) throws IOException {
-        if (view == null) sendResponse(new NotFound(), responseOutputStream);
+    private void handleRequest(Socket client) throws IOException {
+        Request request = new Request(client.getInputStream());
+
+        System.out.printf("[INFO] %s: %s%n", client.getInetAddress().getHostAddress(), request.getRequestLine());
+
+        if ("/subscribe".equals(request.target)) {
+            Response response = WebsocketMulticast.registerClient(client, request);
+            sendResponse(response, client.getOutputStream());
+            return;
+        }
+
+        View view = endpoints.get(new MethodRoutePair(request.method, request.target));
+        Response response = this.handleEndpoint(request, view);
+        sendResponse(response, client.getOutputStream());
+
+        client.close();
+    }
+
+    private Response handleEndpoint(Request request, View view) throws IOException {
+        if (view == null) return new NotFound();
 
         Response resp = view.apply(request);
         String body = resp.getBody();
@@ -101,11 +115,10 @@ public class Server {
             resp.addHeaders(headers);
         }
 
-        // Send Response
-        sendResponse(resp, responseOutputStream);
+        return resp;
     }
 
     private static void sendResponse(Response response, OutputStream outputStream) throws IOException {
-        outputStream.write(response.toString().getBytes());
+        outputStream.write(response.toString().getBytes(StandardCharsets.UTF_8));
     }
 }

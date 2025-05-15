@@ -1,6 +1,7 @@
 import Server.Responses.NotFound;
 import Server.Responses.Ok;
 import Server.Responses.Response;
+import Server.WebsocketMulticast;
 import Server.types.MethodRoutePair;
 import Volunteers.ServiceAssignments;
 import Volunteers.VolunteerPreferences;
@@ -55,6 +56,16 @@ public class Router {
                 return new Response(400, "Bad Request");
             }
 
+            return new Ok();
+        });
+
+        _endpoints.put(new MethodRoutePair("GET", "/broadcast"), (request) -> {
+            try {
+                System.out.println("Sending Hello to users");
+                WebsocketMulticast.notifyAll("Hello");
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
             return new Ok();
         });
 
