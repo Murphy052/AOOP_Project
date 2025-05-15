@@ -118,13 +118,15 @@ public class Router {
         Map<String, String> assignments = Hungarian.optimizeHungarian(prefs, services);
         ServiceAssignments.update(assignments);
 
-//        new Thread(() -> { // Broadcast new assignments on background Thread
+        Thread t = new Thread(() -> { // Broadcast new assignments on background Thread
             try {
                 WebsocketMulticast.notifyAll(new JSONObject(assignments));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//        });
+        });
+        t.setDaemon(true);  // make it a daemon thread
+        t.start();
 
         return assignments;
     }
