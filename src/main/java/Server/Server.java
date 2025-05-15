@@ -107,13 +107,17 @@ public class Server {
         Response resp = view.apply(request);
         String body = resp.getBody();
 
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Access-Control-Allow-Origin", "*");
+        headers.put("Access-Control-Allow-Methods", "GET, POST");
+        headers.put("Access-Control-Allow-Headers", "*");
+        headers.put("Access-Control-Allow-Credentials", "true");
+        headers.put("Access-Control-Max-Age", "86400");
         if (body != null) {
-            HashMap<String, String> headers = new HashMap<>();
             headers.put("Content-Type", "plain/text");
             headers.put("Content-Length", String.valueOf(body.length()));
-
-            resp.addHeaders(headers);
         }
+        resp.addHeaders(headers);
 
         return resp;
     }

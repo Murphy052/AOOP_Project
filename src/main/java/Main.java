@@ -7,7 +7,7 @@ public class Main {
         try {
             Server server = Server.builder()
                     .port(4221)
-                    .threads(4)
+                    .threads(8)
                     .addEndpoints(Router.getEndpoints()).build();
 
             server.start();
